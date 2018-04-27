@@ -1,0 +1,16 @@
+program new;
+{$H-}
+{$define SMART}
+{$I SRL/OSR.simba}
+
+Procedure init;
+begin
+LoginScreen.EnterLogin('wandparry899@outlook.com');
+end;
+
+begin
+  smart.EnableDrawing := True;
+  srl.Setup([]);
+  init();
+end.
+

@@ -1,0 +1,26 @@
+program RUNME;
+{$i AeroLib/AeroLib.Simba}
+
+procedure tap;
+var
+  x, y: integer;
+begin
+  getMousePos(x, y);
+  holdMouse(x, y, mouse_Left);
+
+  wait(60+random(100));
+
+  getMousePos(x, y);
+  releaseMouse(x, y, mouse_Left);
+end;
+
+Procedure alch;
+
+begin
+  castSpell('High Level Alchemy');
+end;
+
+begin
+initAL;
+alch;
+end.

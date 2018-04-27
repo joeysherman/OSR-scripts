@@ -1,0 +1,71 @@
+program Example;
+{$DEFINE SMART}
+{$i reflection/Reflection.simba}
+
+var
+  graphicOpti: TReflectionGraphics;
+  startExp, gainedExp: integer;
+
+Procedure SaveSession;
+begin
+
+end;
+
+Procedure AntiBan;
+begin
+
+end;
+
+Procedure AlchLoop;
+begin
+
+end;
+
+Procedure Setup;
+begin
+  gainedExp := 0;
+  graphicOpti.Create(765, 503);
+end;
+
+Procedure Draw;
+begin
+  graphicOpti.Clear;
+  graphicOpti.DrawClippedText('Exp Gained: ' + IntToStr(gainedExp), 'upchars07', Point(400, 60), 65280);
+
+  Reflect.Smart.Graphics.DrawBitmap(graphicOpti.ToBitmap(False), Point(0, 0), true);
+end;
+
+Procedure FreeAllz;
+begin
+  graphicOpti.Free;
+end;
+
+Procedure Alch;
+var
+  m: TReflectionMouse;
+  text: TReflectionText;
+  i: integer;
+begin
+  i:= 6000;
+  m.Move(Point(712, 325), 4, 4);
+  Sleep(200);
+  repeat
+    begin
+      m.Click(Mouse_Left);
+      sleep(RandomRange(200, 300));
+      m.Click(Mouse_Left);
+      sleep(RandomRange(3100, 3250));
+      i := i - 1;
+      gainedExp := gainedExp + 65;
+      Draw;
+    end;
+  until (i = 0)
+end;
+
+begin
+  Reflect.Setup;
+  Setup;
+  Reflect.Smart.Graphics.Clear;
+  AddOnTerminate('FreeAllz');
+  Alch;
+end.

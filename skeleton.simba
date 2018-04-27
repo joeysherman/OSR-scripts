@@ -1,0 +1,60 @@
+program RUNME;
+
+procedure customClick;
+var
+  x, y: integer;
+begin
+  getMousePos(x, y);
+  holdMouse(x, y, mouse_Left);
+
+  wait(60+random(100));
+
+  getMousePos(x, y);
+  releaseMouse(x, y, mouse_Left);
+end;
+
+Procedure twak;
+var
+  invX, invY : Integer;
+  boltX, boltY : Integer;
+  randInv, randBolt : Integer;
+  waitTime : Integer;
+  pulse, count : Integer;
+begin
+
+  pulse = 0;
+  count = 0;
+  while (count < 10) do
+  begin
+    while(pulse < 50)do
+    begin
+     waitTime := (75 + RandomRange(10, 100));
+
+     randInv := RandomRange(-7, 7);
+     randBolt := + RandomRange(-20, 30);
+
+    invX := 642 + randInv;
+    invY := 230 + randInv;
+
+    boltX := 165 + randBolt;
+    boltY := 232 + randBolt;
+
+    MoveMouse(invX, invY);
+    customClick;
+
+    Sleep(waitTime);
+
+    MoveMouse(boltX, boltY);
+    customClick;
+
+    pulse := pulse+1;
+    end;
+    pulse := 0;
+    count := count+1;
+    writeLn('Completed 50 clicks');
+  end;
+end;
+
+begin
+  twak;
+end.

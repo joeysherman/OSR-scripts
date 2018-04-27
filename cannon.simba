@@ -1,0 +1,22 @@
+program RUNME;
+
+procedure tap;
+var
+  x, y: integer;
+begin
+  getMousePos(x, y);
+  holdMouse(x, y, mouse_Left);
+
+  wait(60+random(100));
+
+  getMousePos(x, y);
+  releaseMouse(x, y, mouse_Left);
+end;
+
+begin
+  while (true) do
+  begin
+    tap;
+    sleep(35000 + randomRange(0, 7500));
+  end;
+end.

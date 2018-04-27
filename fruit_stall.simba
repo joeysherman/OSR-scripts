@@ -1,0 +1,70 @@
+program RUNME;
+{$i AeroLib/AeroLib.Simba}
+
+var
+  invArr : array of Integer;
+  i : Integer;
+  stall : TMSObject;
+
+procedure tap;
+var
+  x, y: integer;
+begin
+  getMousePos(x, y);
+  holdMouse(x, y, mouse_Left);
+
+  wait(60+random(100));
+
+  getMousePos(x, y);
+  releaseMouse(x, y, mouse_Left);
+end;
+
+Procedure dropAll;
+begin
+  fastDropSlots(invArr);
+end;
+
+Procedure clickStall;
+var
+  stall_pnts: TPointArray;
+  found: Boolean;
+  i: Integer;
+begin
+  if stall.findAllIn(AREA_MS, 30, MSCP, stall_pnts) then
+  begin
+    for i:=0 to high(stall_pnts) do
+    begin
+      missMouse(stall_pnts[i], 8, 8);
+      break;
+    end;
+  end;
+end;
+
+Procedure antiBan;
+begin
+  case Random(60) of
+    4: randomRClick;
+    24:examineInv;
+    32:randomCompass(True);
+    40:levelUp;
+    50:boredHuman;
+    59:randomTab(True);
+  end;
+end;
+
+begin
+  initAL;
+  invArr := [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28];
+  stall.create('Stall', ['Steal-from', 'teal-', 'Fruit Stall'], [createCol(2501428, 6, 0.17, 1.16)]);
+  while (true) do
+  begin
+    antiBan;
+    clickStall;
+    for i:= 1 to 28 do
+    begin
+      tap;
+      wait(RandomRange(3400, 3700));
+    end;
+    dropAll;
+  end;
+end.

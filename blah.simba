@@ -1,0 +1,153 @@
+program Example;
+{$DEFINE SMART}
+{$i reflection/Reflection.simba}
+
+var
+  graphicOpti: TReflectionGraphics;
+
+  alchMidPoint: TPoint;
+
+  alchBox: TBox;
+
+  startExp,
+  gainedExp,
+  natureRuneCount,
+  alchItemCount,
+  alchLimit: integer;
+
+  alchItem,
+  state: String;
+
+  haveNatures: Boolean;
+
+Procedure SaveSession;
+begin
+
+end;
+
+Procedure AntiBan;
+begin
+
+end;
+
+Procedure AlchLoop;
+begin
+
+end;
+
+Procedure Setup;
+var
+  _items: TReflectInvItemArray;
+  i: integer;
+
+begin
+  alchMidPoint := Point(716, 330);
+
+  alchBox.X1 := alchMidPoint.x - 5;
+  alchBox.Y1 := alchMidPoint.y - 5;
+  alchBox.X2 := alchMidPoint.x + 5;
+  alchBox.Y2 := alchMidPoint.y + 5;
+
+  _items.GetAll;
+
+  for i:= 0 to high(_items) do
+  begin
+    if (haveNatures) then
+      break;
+    if (_items[i].GetName = 'Nature rune') then
+    begin
+      haveNatures := True;
+      natureRuneCount := _items[i].GetQuantity;
+    end;
+  end;
+
+  for i:= 0 to high(_items) do
+  begin
+
+    if (_items[i].GetInvSlot = 16) then
+    begin
+      alchItem := _items[i].GetName;
+      alchItemCount := _items[i].GetQuantity;
+    end;
+  end;
+  alchLimit := Min(6000, Min(alchItemCount, natureRuneCount));
+
+  writeln('We can alch a max of: ' + IntToStr(alchLimit));
+  state := 'Reset';
+  gainedExp := 0;
+  graphicOpti.Create(765, 503);
+end;
+
+Procedure Draw;
+begin
+  graphicOpti.Clear;
+  graphicOpti.DrawClippedText('Exp Gained: ' + IntToStr(gainedExp), 'upchars07', Point(400, 120), 65280);
+  Reflect.Smart.Graphics.DrawBitmap(graphicOpti.ToBitmap(False), Point(0, 0), true);
+end;
+
+Procedure FreeAllz;
+begin
+  graphicOpti.Free;
+end;
+
+Procedure Alch;
+var
+  m: TReflectionMouse;
+begin
+  m.Click(Mouse_Left);
+  sleep(RandomRange(200, 300));
+  m.Click(Mouse_Left);
+  sleep(RandomRange(3000, 3150));
+end;
+
+Procedure MoveMouseToAlch;
+var
+  m: TReflectionMouse;
+begin
+  m.Move(alchMidPoint, 5, 5);
+  // 709, 320 - top left
+  // 724, 334 - bottom right
+end;
+
+Procedure MainLoop;
+begin
+  repeat
+    begin
+      case state of
+        'Reset':
+          begin
+            if not (Reflect.Gametab.Current = 54) then
+            begin
+              writeln('Opening Magic Tab...');
+              Reflect.Gametab.Open(54);
+              if not (PointInBox(Reflect.Mouse.GetPoint, alchBox)) then
+              begin
+                writeln('Moving mouse to Alch spell...');
+                MoveMouseToAlch;
+              end;
+            end;
+            state := 'Alch';
+          end;
+        'Alch':
+          begin
+            Alch;
+            alchLimit := alchLimit - 1;
+          end;
+        'Logout':
+          begin
+          end;
+        'AntiBan':
+          begin
+          end;
+      end;
+    end;
+  until (alchLimit = 0);
+end;
+
+begin
+  Reflect.Setup;
+  Setup;
+  Reflect.Smart.Graphics.Clear;
+  AddOnTerminate('FreeAllz');
+  MainLoop;
+end.

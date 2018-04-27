@@ -1,0 +1,253 @@
+program Example;
+{$DEFINE SMART}
+{$i reflection/Reflection.simba}
+
+type Crabber = record
+  TPlayer: TReflectLocalPlayer;
+
+  InvArr: TReflectInvItemArray;
+  InvCount: Integer;
+  HasFood: Boolean;
+
+  CurSpotIndex: Integer;
+  Task: String;
+end;
+
+const
+  Chest_Id = 10562;
+  SandiCrahb_Id = 7483;
+  SandCrab_Id = 7207;
+
+  // Shark, Lobster, Swordfish, Monkfish
+  Food_Ids = [385, 380, 373, 7947];
+
+var
+  Player: Crabber;
+  times: Integer;
+  Path_Sandi_To_Bank, Path_Bank_To_Sandi, Crab_Spot_Array: TTileArray;
+  Sandicrahb_On_Island, Sandicrahb_Off_Island, Crab_Spot_SW, Crab_Spot_SE, Crab_Spot_NW, Crab_Spot_NN, Crab_Spot_SEE: TTile;
+
+Procedure SetupVars;
+begin
+  // Paths
+  Path_Sandi_To_Bank := [[1784, 3458], [1773, 3466], [1760, 3469], [1748, 3471], [1736, 3471], [1722, 3466], [1720, 3465]];
+  Path_Bank_To_Sandi := [[1719, 3465], [1733, 3467], [1745, 3473], [1758, 3473], [1771, 3470], [1781, 3465], [1782, 3459]];
+
+  // SandiCrahb Locations
+  Sandicrahb_On_Island := Point(1779, 3418);
+  Sandicrahb_Off_Island := Point(1783, 3460);
+
+  // 4 spot Crab Locations
+
+  Crab_Spot_SW := Point(1749, 3412);
+  Crab_Spot_SE := Point(1780, 3407);
+  Crab_Spot_NW := Point(1751, 3425);
+  Crab_Spot_NN := Point(1780, 3438);
+
+  // 3 spot Crab Locations
+  Crab_Spot_SEE := Point(1786, 3404);
+
+  // Crab spot array
+  Crab_Spot_Array := [Crab_Spot_SW,
+    Crab_Spot_SE,
+    Crab_Spot_NW,
+    Crab_Spot_NN,
+    Crab_Spot_SEE];
+end;
+
+// Walk to Travel Guy from Islnd
+
+// Walk to Bank
+
+// Bank
+
+// Walk to Travel Guy
+
+// Walk to Training Spot
+
+// Reset Every 10 minz
+
+// Fight Routine
+// - Eat
+// - Pot up
+// - AntiBan/Randoms
+
+Procedure FightLoop;
+begin
+end;
+
+Procedure Crabber.EatFood;
+var
+  inv: TReflectInvItem;
+  I: Integer;
+begin
+  if (inv.Find(385)) then
+  begin
+    inv.Interact;
+    writeln('Found food!');
+  end else
+  begin
+    writeLn('No Food Found!');
+    Self.HasFood := False;
+  end;
+end;
+
+Procedure Crabber.DrinkPotion;
+var
+  inv: TReflectInvItemArray;
+  I: Integer;
+begin
+  inv.GetAll;
+  for I := 0 to High(inv) do
+  begin
+    Writeln(FloatToStr(String.StringMatch(inv[I].GetName, 'potion')));
+  end;
+end;
+
+Procedure Crabber.ResetSpot;
+begin
+
+end;
+
+Procedure ShoutTile;
+var
+  i, k: Integer;
+begin
+  k:= 10;
+  for i:= 0 to k do
+  begin
+    WriteLn(Player.TPlayer.GetTile);
+    sleep(7000);
+  end;
+end;
+
+Procedure Crabber.DetermineInventory;
+var
+  cInventory: TReflectionInventory;
+  cItems: TReflectInvItemArray;
+  I: Integer;
+
+begin
+  Self.InvCount := cInventory.Count;
+  writeLn(IntToStr(Player.InvCount));
+  cItems.GetAll;
+  for I:= 0 to High(cItems) do
+    writeLn(cItems[I].GetName);
+end;
+
+Procedure Crabber.DetermineLocation;
+var
+  cLocation: TTile;
+  D, I: Integer;
+
+begin
+  if Self.TPlayer.IsLoggedIn then
+  begin
+    cLocation := Self.TPlayer.GetTile;
+    writeln('We are here: ' + IntToStr(cLocation.X) + ',' + IntToStr(cLocation.Y));
+    for I:= 0 to 4 do
+    begin
+      if (TReflectionTiles.DistanceFromTile(Crab_Spot_Array[I]) = 0) then
+        case (I) of
+          0:
+            writeLn('We are SW');
+          1:
+            writeLn('We are SE');
+          2:
+            writeLn('We are NW');
+          3:
+            writeLn('We are NN');
+          4:
+            writeLn('We are SEE');
+        end;
+    end;
+  end;
+end;
+
+procedure ShoutIds;
+var
+  Npcs: TReflectNpcArray;
+  i, k: Integer;
+  Point: TPoint;
+begin
+  Npcs.GetAll;
+  k := High(Npcs)-1;
+  for i := 0 to k do
+  begin
+    writeLn(Npcs[i].GetName);
+    writeLn(Npcs[i].GetId);
+    writeLn('-------------');
+  end;
+end;
+
+Procedure FindSandiCrahb;
+var
+  npc: TReflectNPC;
+  location: TPoint;
+  TravelText: TReflectionText;
+
+begin
+  if npc.Find(7483) then
+  begin
+    location := npc.GetMSPoint;
+    Reflect.Mouse.Move(location, 3, 3);
+    Reflect.Mouse.Click(Mouse_Right);
+    sleep(500);
+    TravelText.ChooseOption('Quick-travel');
+  end;
+end;
+
+Procedure WalkToTravelGuy;
+var
+  TravelGuy : TTile;
+begin
+  TravelGuy.X := 1779;
+  TravelGuy.Y := 3418;
+  Player.TPlayer.BlindWalkMM(TravelGuy);
+end;
+
+Procedure FindBankChest;
+var
+  Chest: TReflectObject;
+begin
+  if Chest.Find(ObjGame, Chest_Id) then
+  begin
+    Reflect.Mouse.Move(Chest.GetMSPoint, 3, 3);
+    Reflect.Mouse.Click(Mouse_Left);
+  end;
+end;
+
+Procedure FindOpenSpot;
+begin
+
+end;
+
+Procedure Regear;
+var
+  potions, food: TReflectBankItem;
+begin
+  if food.Find('Swordfish') then
+  begin
+    food.Withdraw(5);
+  end;
+end;
+
+Procedure RecordPath;
+var
+  i, k: Integer;
+begin
+  k := 100;
+  for i:= 0 to k do
+  begin
+    writeln(Player.TPlayer.GetTile);
+    sleep(5000);
+  end;
+end;
+
+begin
+  Reflect.Setup;
+  SetupVars;
+  Reflect.Smart.Graphics.Clear;
+  Player.TPlayer.Create;
+  Player.EatFood;
+end.

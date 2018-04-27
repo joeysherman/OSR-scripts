@@ -1,0 +1,101 @@
+program RUNME;
+{$define SMART}
+{$i AeroLib/AeroLib.Simba}
+
+var
+  ogre_obj: TMSObject;
+  cannon_obj: TMSObject;
+  fight_timer: Timer;
+
+Procedure setupPlayer;
+begin
+  Me.Active := True;
+  Me.Member := True;
+  Me.Name := 'wandparry899@outlook.com';
+  Me.Pass := 'White101';
+end;
+
+// Determine Location
+// Bank flow
+// Fight flow
+
+procedure tap;
+var
+  x, y: integer;
+begin
+  getMousePos(x, y);
+  holdMouse(x, y, mouse_Left);
+
+  wait(60+random(100));
+
+  getMousePos(x, y);
+  releaseMouse(x, y, mouse_Left);
+end;
+
+Procedure refreshPlayer;
+begin
+  writeLn('Setting default view and gameTab');
+  setCompass('N');
+  gameTab(22);
+  sleep(2000);
+  gameTab(24);
+end;
+
+Procedure attackOgre;
+var
+  ogre_pnt: TPoint;
+begin
+  if ogre_obj.find() then
+  begin
+    writeLn('Found Ogre');
+    tap;
+  end;
+end;
+
+Procedure loadCannon;
+begin
+  if cannon_obj.find() then
+  begin
+    writeLn('Found Cannon');
+    tap;
+  end;
+end;
+
+Procedure initialize;
+begin
+  initAL();
+  setupPlayer();
+  if (not isLoggedIn()) then
+  begin
+    loginPlayer(false);
+  end;
+  writeLn(getCurrentTab());
+  castSpell('High Level Alchemy');
+  tap;
+end;
+
+Procedure fightLoop;
+var
+  waitTime: Integer;
+begin
+  while (true) do
+  begin
+    waitTime := (30000 + randomRange(0, 5000));
+    fight_timer.start();
+    while (fight_timer.timeElapsed >= waitTime) do
+    begin
+      attackOgre();
+      sleep(10000 + randomRange(0, 5000));
+    end;
+    loadCannon();
+  end;
+end;
+
+begin
+  initialize();
+  //gre_obj.create('Ogre', ['Attack Ogre', 'ttack Og'], [createCol(8890299, 14, 0.05, 0.58)], 50, 20, 20, 20);
+  //cannon_obj.create('Cannon', ['Fire Dwarf', 'ire Dwarf multi'], [createCol(5854035, 20, 0.00, 0.03)]);
+  //fightLoop();
+end.
+
+

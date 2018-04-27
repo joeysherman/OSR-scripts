@@ -1,0 +1,233 @@
+program pathThingy;
+
+var
+  mainForm: TForm;
+  lbl: TLabel;
+  butt, mapButt: TSpeedButton;
+  sb: TScrollBox;
+  pnl: TPanel;
+  img, zoom: TImage;
+  memo: TMemo;
+  lastPoint: TPoint;
+  map: TMufasaBitmap;
+  mapw, maph: integer;
+  loadedMap: boolean := false;
+  path: TPointArray;
+
+procedure debug(const str: string);
+begin
+  memo.getLines().add(str);
+end;
+
+procedure debugPath();
+var
+  s: string;
+  i: integer;
+begin
+  s := s + 'path := [';
+  for i := 0 to high(path)-1 do
+    s := s + ('[' + toStr(path[i].x) + ', ' + toStr(path[i].y) + '], ');
+  s := s + ('[' + toStr(path[i].x) + ', ' + toStr(path[i].y) + ']');
+  s := s + '];';
+  debug(s);
+end;
+
+procedure onImgClick(sender: TObject; button: TMouseButton; shift: TShiftState; x, y: integer); native;
+var
+  c: TCanvas;
+  w, h, xx, yy, px, py: integer;
+  box: TBox;
+begin
+  if (not butt.getDown) then exit();
+  c := img.getCanvas();
+  w := c.getWidth(); h := c.getHeight();
+
+  xx := lastPoint.x;
+  yy := lastPoint.y;
+  case (xx mod 3) of
+    0: inc(xx);
+    2: dec(xx);
+  end;
+  case (yy mod 3) of
+    1: dec(yy);
+    2: inc(yy);
+  end;
+  box := [max(0, xx-1), max(0, yy-1), min(xx+1, w-1), min(yy+1, h-1)];
+  c.SetPixels(tpaFromBox(box), 255);
+  px := floor(xx/3) + 1391;
+  py := floor((h-yy)/3) + 2479;
+  appendTPA(path, [[px, py]]);
+  debugPath();
+  //incPath(px, py);
+  img.Repaint();
+end;
+
+procedure onImgMouseMove(Sender: TObject; Shift: TShiftState; x, y: Integer); Native;
+var
+  c, zc: TCanvas;
+  w, h, xx, yy, px, py, col: integer;
+  box: TBox;
+  bmp: TMufasaBitmap;
+  tbmp: TBitmap;
+begin
+  if (not loadedMap) then exit();
+  lastPoint := [x, y];
+
+  c := img.getCanvas();
+  w := c.getWidth(); h := c.getHeight();
+
+  xx := x; yy := y;
+  case (xx mod 3) of
+    0: inc(xx);
+    2: dec(xx);
+  end;
+  case (yy mod 3) of
+    1: dec(yy);
+    2: inc(yy);
+  end;
+  col := c.GetPixel(xx, yy);
+  box := [max(0, xx-4), max(0, yy-4), min(xx+4, w-1), min(yy+4, h-1)];
+
+  px := floor(xx/3) + 1391;
+  py := floor((h-yy)/3) + 2479;
+  lbl.setCaption('tile: [' + toStr(px) + ', ' + toStr(py) + ']');
+
+  bmp.Init();
+  bmp := map.Copy(box.x1, box.y1, box.x2, box.y2);
+  bmp.StretchResize(90, 90);
+  tbmp := bmp.ToTBitmap();
+
+  zoom.getPicture().clear();
+  zoom.getPicture().setBitmap(tbmp);
+  zoom.getCanvas().getBrush().setColor(col);
+  zoom.getCanvas().getPen().setColor(255);
+  zoom.getCanvas().rectangle(30, 30, 60, 60);
+
+  zoom.Repaint();
+  bmp.Free();
+  tbmp.Free();
+end;
+
+procedure loadMap();
+begin
+  map.Init();
+  map.LoadFromFile(appPath + 'map.png');
+  mapw := map.getWidth();
+  maph := map.getHeight();
+end;
+
+procedure mapButton(sender: TObject); native;
+var
+  tbmp: TBitmap;
+begin
+  if loadedMap then exit();
+
+  img.setWidth(mapw);
+  img.setHeight(maph);
+  img.getPicture().clear();
+
+  tbmp := map.ToTBitmap();
+  img.getPicture().setBitmap(tbmp);
+  tbmp.Free();
+
+  loadedMap := true;
+end;
+
+procedure initForm(sender: TObject); native;
+begin
+  mainform.Init(nil);
+
+  mainform.setCaption('formTest');
+  mainform.setWidth(800);
+  mainform.setHeight(600);
+  mainform.setLeft(200);
+  mainform.setTop(200);
+  mainform.getConstraints().setMinHeight(600);
+  mainform.getConstraints().setMinWidth(800);
+  mainform.setKeyPreview(true);
+  mainform.setDoubleBuffered(True);
+
+  pnl.Init(mainform);
+  pnl.setParent(mainform);
+  pnl.setHeight(200);
+  pnl.setAlign(alBottom);
+
+  butt.Init(mainform);
+  butt.setParent(pnl);
+  butt.setWidth(100);
+  butt.setAlign(alRight);
+  butt.setAllowAllUp(true);
+  butt.setGroupIndex(1);
+  butt.setCaption('record path');
+
+  mapButt.Init(mainform);
+  mapButt.setParent(pnl);
+  mapButt.setWidth(100);
+  mapButt.setAlign(alRight);
+  mapButt.setCaption('load map');
+  mapButt.setOnClick(mapButton);
+
+  sb.Init(mainform);
+  sb.setParent(mainform);
+  sb.setAlign(alClient);
+  sb.setBorderStyle(bsNone);
+
+  img.Init(mainform);
+  img.setParent(sb);
+  img.setWidth(800);
+  img.setHeight(400);
+  img.setCursor(crCross);
+  img.setCenter(true);
+  img.setOnClick(onImgClick);
+  img.setOnMouseMove(onImgMouseMove);
+
+  lbl.Init(mainform);
+  lbl.setParent(pnl);
+  lbl.setCaption('tile');
+  lbl.setAlign(alLeft);
+
+  zoom.Init(mainform);
+  zoom.setParent(pnl);
+  zoom.setWidth(100);
+  zoom.setAlign(alLeft);
+  zoom.setCenter(true);
+
+  memo.Init(mainform);
+  memo.setReadOnly(true);
+  memo.setParent(pnl);
+  memo.setHeight(100);
+  memo.setAlign(alBottom);
+  memo.setScrollBars(ssAutoVertical);
+
+  try
+    mainform.ShowModal();
+  finally
+    mainform.Free();
+  end;
+
+end;
+
+procedure writePath();
+var
+  i: integer;
+begin
+  if (length(path) < 1) then exit();
+  write('path := [');
+  for i := 0 to high(path)-1 do
+    write('[', path[i].x, ', ', path[i].y, '], ');
+  write('[', path[i].x, ', ', path[i].y, ']');
+  writeln('];');
+end;
+
+procedure freeMap();
+begin
+  if (map <> nil) then map.free;
+  writePath();
+end;
+
+begin
+  addOnTerminate('freeMap');
+  clearDebug();
+  loadMap();
+  sync(initForm);
+end.
